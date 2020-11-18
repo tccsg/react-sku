@@ -20,7 +20,11 @@
       padding-left: 10px;
       display: flex;
       flex-direction: column;
-      justify-content: flex-end;
+      justify-content: space-between;
+      .item-title {
+        font-size: 16px;
+        color: #333333;
+      }
       .price-wrap {
         display: flex;
         align-items: center;
@@ -96,6 +100,22 @@
           color: #ccc;
         }
       }
+    }
+  }
+}
+.btn-wrap {
+  margin-top: 30px;
+  .btn {
+    height: 40px;
+    line-height: 40px;
+    border-radius: 40px;
+    text-align: center;
+    font-size: 14px;
+    cursor: pointer;
+    color: #ffffff;
+    background-color: #f89920;
+    &.disable {
+      background-color: #ccc !important;
     }
   }
 }

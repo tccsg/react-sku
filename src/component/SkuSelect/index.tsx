@@ -17,7 +17,7 @@ type SpecPath = {
   path: { name: string; value: string }[]
   hold: number
 }
-type PostDody = {
+type PostBody = {
   skuId: string
   itemId: string
   num: number
@@ -26,7 +26,7 @@ interface Props {
   /** 商品数据 */
   data: SkuItem
   /** 点击确定按钮 */
-  onPressConfirm?: (p: PostDody) => void
+  onPressConfirm?: (p: PostBody) => void
   /** 所选规格变化触发 */
   optionsChange?: (s: Spec) => void
   /** modal关闭时触发 */
@@ -241,6 +241,7 @@ const SkuSelect: FC<Props> = (props) => {
     const dataExtraHold = data.skuHold
     let _tags: Spec = {}
     let _maxPrice = data?.minPrice ?? 0
+    // 用于初始化默认选项
     if (_spec) {
       _tags = _spec
       setSkuHold(dataExtraHold as number)
@@ -305,20 +306,17 @@ const SkuSelect: FC<Props> = (props) => {
     }
     setCount(_count)
   }
-  const addToCart = () => {
+  const onPressConfirmButton = () => {
     if (!judgeCanAdd(data?.skus)) {
       return
     }
-
     const skuId = getSkuInfoByKey(spec, 'skuId')
-    const postData: PostDody = {
+    const postData: PostBody = {
       skuId,
       itemId: data?.itemId,
       num: count
     }
-    if (onPressConfirm) {
-      onPressConfirm(postData)
-    }
+    onPressConfirm?.(postData)
   }
   useEffect(() => {
     openCurDrawer()
@@ -331,11 +329,14 @@ const SkuSelect: FC<Props> = (props) => {
           <img alt="" src={data.image} />
         </div>
         <div className="content">
-          <div className='price-wrap'>
-            <span>¥{prodPrice}</span>
-            {!canFlag && maxPrice > prodPrice ? <span>~ {maxPrice}</span> : null}
+          <div className="item-title">{data.title}</div>
+          <div>
+            <div className='price-wrap'>
+              <span>¥{prodPrice}</span>
+              {!canFlag && maxPrice > prodPrice ? <span>~ {maxPrice}</span> : null}
+            </div>
+            <div className='sku-hold'>库存 {skuHold} 件</div>
           </div>
-          <div className='sku-hold'>库存 {skuHold} 件</div>
         </div>
       </div>
       <div className="spec-inner">
@@ -366,6 +367,11 @@ const SkuSelect: FC<Props> = (props) => {
               <div className="count-box">{count}</div>
               <div className="sign" onClick={() => countChange('+')}>+</div>
             </div>
+          </div>
+        </div>
+        <div className="btn-wrap">
+          <div className={canFlag ? "btn" : "btn disable"} onClick={onPressConfirmButton}>
+            确认
           </div>
         </div>
       </div>

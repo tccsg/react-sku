@@ -5,6 +5,11 @@ import SkuCreator from './component/SkuCreator'
 import SkuSelect from './component/SkuSelect'
 
 let tempSKus: any = []
+const mockItemData = {
+  title: 'react-sku组件',
+  minPrice: 1,
+  itemId: 'test_csdfdge8je3nnc'
+}
 const App = () => {
   const [skus, setSkus] = useState<any[]>([])
   const confirmSkus = () => {
@@ -22,9 +27,12 @@ const App = () => {
         <div className="sku-select-wrap">
           <SkuSelect
             optionsChange={(spec) => {
-              // console.log(spec)
+              console.log('点击的规格属性变化', spec)
             }}
-            data={{skus, title: 'react-sku测试', minPrice: 1}} />
+            onPressConfirm={(data) => {
+              console.info('提交的数据', data)
+            }}
+            data={{skus, ...mockItemData}} />
         </div>
       </div>
     </div>

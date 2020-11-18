@@ -22,7 +22,7 @@ const App = () => {
         <div className="sku-select-wrap">
           <SkuSelect
             optionsChange={(spec) => {
-              console.log(spec)
+              // console.log(spec)
             }}
             data={{skus, title: 'react-sku测试', minPrice: 1}} />
         </div>

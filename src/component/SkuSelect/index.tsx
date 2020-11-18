@@ -1,9 +1,8 @@
-import { Input, message } from 'antd'
+import { message } from 'antd'
+import _ from 'lodash'
 import React, { FC, useState, useEffect } from 'react'
 
 import './index.scss'
-
-const DELIMITER = '†'
 
 export type SpecItem = {
   select: boolean
@@ -14,15 +13,8 @@ type SkuItem = any
 export type Spec = {
   [sk: string]: SpecItem[]
 }
-type SkuPathIncludeInfo = {
-  [sik: string]: {
-    skuId?: string
-    price?: number
-    hold: number
-  }
-}
 type SpecPath = {
-  path: string
+  path: { name: string; value: string }[]
   hold: number
 }
 type PostDody = {
@@ -41,7 +33,6 @@ interface Props {
   onClose?: (s: Spec) => void
 }
 
-let skuIdBySkus: any = {}
 let TotalSkuHold = 0 // 总库存
 
 const SkuSelect: FC<Props> = (props) => {
@@ -53,18 +44,46 @@ const SkuSelect: FC<Props> = (props) => {
   const [skuHold, setSkuHold] = useState(0)
   const [maxPrice, setMaxPrice] = useState<number>(0)
 
+
+  /**
+   * 
+   * @param _spec 规格属性
+   * @param sk 该sku下的 sk这个key的值
+   * 
+   * 不传sk的话返回所有信息
+   */
   const getSkuInfoByKey = (_spec: Spec, sk?: string) => {
-    let skuStr = ''
-    Object.keys(spec).forEach((k) => {
-      const selectedValue = spec[k].find((sv) => sv.select)
+    // 已选的规格：[{ name:规格名称, value:已选规格内容 }]
+    const selectedSpec: { name: string, value: string }[] = []
+
+    Object.keys(_spec).forEach((k) => {
+      const selectedValue = _spec[k].find((sv) => sv.select)
       if (selectedValue) {
-        skuStr += `${k}:${selectedValue.value}${DELIMITER}`
+        // 这块部分也可以在选择的时候直接处理
+        selectedSpec.push({
+          name: k,
+          value: selectedValue.value
+        }) 
       }
     })
-    if (skuIdBySkus[skuStr] && skuIdBySkus[skuStr][sk ?? '']) {
-      return skuIdBySkus[skuStr][sk ?? '']
-    } else if (skuIdBySkus[skuStr]) {
-      return skuIdBySkus[skuStr]
+    // 在规格没有全选的情况下 不执行查询操作
+    if (selectedSpec.length !== Object.keys(_spec).length) {
+      return
+    }
+    const { skus } = data
+    const querySku = skus.find((sku) => {
+      // 对比两个数组找到 两个都不存在的sku 如果为0 则说明完全匹配就是该sku
+      const diffSkus = _.xorWith(selectedSpec, sku.properties, _.isEqual)
+      if (!diffSkus.length) {
+        return true
+      } else {
+        return false
+      }
+    })
+    if (querySku && querySku[sk ?? '']) {
+      return querySku[sk ?? '']
+    } else if (querySku) {
+      return querySku
     } else {
       return null
     }
@@ -89,17 +108,24 @@ const SkuSelect: FC<Props> = (props) => {
   }
 
   /** 设置 规格是否可以点击，该路径上如果跟该属性的组合没库存则该属性不能点击 */
-  const setSpecDisable = (tags: any, _skuIdBySkus: SkuPathIncludeInfo) => {
+  const setSpecDisable = (tags: any) => {
+    const { skus } = data
     Object.keys(tags).forEach((sk) => {
       tags[sk].forEach((sv: SpecItem) => {
-        const str = `${sk}:${sv.value}`
-        const holdArray: number[] = []
-        Object.keys(_skuIdBySkus).forEach((ss) => {
-          if (ss.includes(str)) {
-            holdArray.push(_skuIdBySkus[ss].hold)
+
+        const currentSpec = [{ name: sk, value: sv.value }]
+        // 找到含有该规格的路径下 库存不为0的 sku
+        const querySku = skus.find((sku) => {
+          // 对比两个数组找到 里面不一样的部分
+          const diffSkus = _.differenceWith(sku.properties, currentSpec, _.isEqual)
+          if (diffSkus.length !== sku.properties.length && sku.hold) {
+            return true
+          } else {
+            return false
           }
         })
-        if (!holdArray.find((h: number) => h)) {
+        // 如果找到 对应该属性的路径 sku有不为0 的则可选
+        if (!querySku) {
           sv.disable = true
         } else {
           sv.disable = false
@@ -136,7 +162,7 @@ const SkuSelect: FC<Props> = (props) => {
         return [...prev, `${currentSpecKey}:${spec[currentSpecKey].find((__v) => __v.select)?.value}`]
       }, [])
     if (isCancel) {
-      setSpecDisable(spec, skuIdBySkus)
+      setSpecDisable(spec)
       if (selectedSpec.length) {
         const k_v = selectedSpec[0].split(':')
         _k = k_v[0]
@@ -146,18 +172,27 @@ const SkuSelect: FC<Props> = (props) => {
         _v = ''
       }
     }
-
+    const { skus } = data
     // console.log('当前选中的规格字符串', selectedSpec)
     const currentSpecPath: SpecPath[] = [] // 当前选中的规格所对应的路径也就是所有组合
-    Object.keys(skuIdBySkus).forEach((ssk: string) => {
-      const currentSpecStr = `${_k}:${_v}`
-      if (ssk.includes(currentSpecStr)) {
+    
+    skus.forEach(sku => {
+      const includeCurrentSpec = sku.properties.find(property => {
+        if (`${property.name}:${property.value}` === `${_k}:${_v}`) {
+          return true
+        } else {
+          return false
+        }
+      })
+      if (includeCurrentSpec) {
         currentSpecPath.push({
-          path: ssk,
-          hold: skuIdBySkus[ssk].hold
+          path: sku.properties,
+          hold: sku.hold
         })
       }
     })
+    console.log(currentSpecPath)
+
     Object.keys(spec).forEach((sk: string) => {
       if (sk !== _k && _k) {
         const isSelected = spec[Object.keys(spec).find((_sk) => sk === _sk) || ''].find((sv) => sv.select)
@@ -175,7 +210,16 @@ const SkuSelect: FC<Props> = (props) => {
           const _tmpPath: SpecPath[] = []
           // 优化
           currentSpecPath.forEach((csp: SpecPath) => {
-            const i = _ssTemp.filter((_sst: string) => csp.path.includes(_sst)).length
+            const i = _ssTemp.filter((_sst: string) => {
+              const querySpec = csp.path.find((p) => {
+                if (`${p.name}:${p.value}` === _sst) {
+                  return true
+                } else {
+                  return false
+                }
+              })
+              return !!querySpec
+            }).length
             if (i === ssLength) {
               _tmpPath.push(csp)
             }
@@ -186,7 +230,7 @@ const SkuSelect: FC<Props> = (props) => {
         })
       }
     })
-    const skus = data?.skus
+
     let price = null
     if (selectedSpec.length) {
       price = getSkuInfoByKey(spec, 'price')
@@ -218,10 +262,8 @@ const SkuSelect: FC<Props> = (props) => {
       const _tempTagsStrArray: any = {} // 临时字符串数组
       let _skuHold = 0
       skus?.forEach((s) => {
-        let specStr = '' // 格式 '尺寸:大#颜色:黑#' : 'xxxxxxxxx'
         _skuHold += s.hold
         s?.properties?.forEach((p) => {
-          specStr += `${p.name}:${p.value}${DELIMITER}`
           if (!_tags[p.name]) {
             _tags[p.name] = []
             _tempTagsStrArray[p.name] = []
@@ -236,12 +278,6 @@ const SkuSelect: FC<Props> = (props) => {
             })
           }
         })
-        if (!skuIdBySkus[specStr]) {
-          skuIdBySkus[specStr] = {}
-        }
-        skuIdBySkus[specStr].skuId = s.skuId
-        skuIdBySkus[specStr].price = s.price
-        skuIdBySkus[specStr].hold = s.hold
         if (s.price > _maxPrice) {
           _maxPrice = s.price
         }
@@ -257,7 +293,7 @@ const SkuSelect: FC<Props> = (props) => {
     setCanFlag(_canFlag)
     setProdPrice(data?.minPrice ?? 0)
     setMaxPrice(_maxPrice)
-    setSpecDisable(_tags, skuIdBySkus)
+    setSpecDisable(_tags)
   }
   const openCurDrawer = () => {
     setDrawOptions()
@@ -306,7 +342,7 @@ const SkuSelect: FC<Props> = (props) => {
     <div className="drawer-inner">
       <div className="prod-info">
         <div className="prod-img">
-          <img src={data.image}></img>
+          <img alt="" src={data.image} />
         </div>
         <div className="content">
           <div className='price-wrap'>

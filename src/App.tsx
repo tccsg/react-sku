@@ -27,10 +27,10 @@ const App = () => {
         <div className="sku-select-wrap">
           <SkuSelect
             optionsChange={(spec) => {
-              console.log('点击的规格属性变化', spec)
+              // console.log('点击的规格属性变化', spec)
             }}
             onPressConfirm={(data) => {
-              console.info('提交的数据', data)
+              // console.info('提交的数据', data)
             }}
             data={{skus, ...mockItemData}} />
         </div>

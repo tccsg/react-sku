@@ -74,11 +74,7 @@ const SkuSelect: FC<Props> = (props) => {
     const querySku = skus.find((sku) => {
       // 对比两个数组找到 两个都不存在的sku 如果为0 则说明完全匹配就是该sku
       const diffSkus = _.xorWith(selectedSpec, sku.properties, _.isEqual)
-      if (!diffSkus.length) {
-        return true
-      } else {
-        return false
-      }
+      return !diffSkus.length
     })
     if (querySku && querySku[sk ?? '']) {
       return querySku[sk ?? '']
@@ -93,7 +89,10 @@ const SkuSelect: FC<Props> = (props) => {
   const judgeCanAdd = (skus: any[] | undefined) => {
     const sks = Object.keys(spec)
     let s = sks.filter((sk) => spec[sk].find((sv) => sv.select)).length // 已经选择的规格个数
-    let _cf = s === sks.length ? true : false
+    let _cf = s === sks.length
+    if (!skus || !skus.length) {
+      _cf = false
+    }
     if (skus?.length === 1 && !skus[0]?.properties?.length && skus[0].hold <= 0) {
       _cf = false
     }
@@ -113,12 +112,15 @@ const SkuSelect: FC<Props> = (props) => {
     Object.keys(tags).forEach((sk) => {
       tags[sk].forEach((sv: SpecItem) => {
 
-        const currentSpec = [{ name: sk, value: sv.value }]
+        const currentSpec = `${sk}:${sv.value}`
+        // const currentSpec = [{ name: sk, value: sv.value }]
         // 找到含有该规格的路径下 库存不为0的 sku
         const querySku = skus.find((sku) => {
+          const queryProperty = sku.properties.find(sp => `${sp.name}:${sp.value}` === currentSpec)
+          return queryProperty && sku.hold
           // 对比两个数组找到 里面不一样的部分
-          const diffSkus = _.differenceWith(sku.properties, currentSpec, _.isEqual)
-          return (diffSkus.length !== sku.properties.length) && sku.hold
+          // const diffSkus = _.differenceWith(sku.properties, currentSpec, _.isEqual)
+          // return (diffSkus.length !== sku.properties.length) && sku.hold
         })
         // 如果找到 对应该属性的路径 sku有不为0 的则可选
         sv.disable = !querySku
@@ -154,12 +156,7 @@ const SkuSelect: FC<Props> = (props) => {
         return [...prev, `${currentSpecKey}:${spec[currentSpecKey].find((__v) => __v.select)?.value}`]
       }, [])
     if (isCancel) {
-      if (selectedSpec.length) {
-        const k_v = selectedSpec[0].split(':')
-        _k = k_v[0]
-        _v = k_v[1]
-      } else {
-        // 都取消掉的时候重新初始化 哪些不可点
+      if (!selectedSpec.length) {
         setSpecDisable(spec)
         _k = ''
         _v = ''
@@ -169,14 +166,17 @@ const SkuSelect: FC<Props> = (props) => {
     const currentSpecPath: SpecPath[] = [] // 当前选中的规格所对应的路径也就是所有组合
     
     skus.forEach(sku => {
-      const includeCurrentSpec = sku.properties.find(property => {
-        if (`${property.name}:${property.value}` === `${_k}:${_v}`) {
-          return true
-        } else {
-          return false
+      if (!isCancel) {
+        const includeCurrentSpec = sku.properties.find(property => {
+          return `${property.name}:${property.value}` === `${_k}:${_v}`
+        })
+        if (includeCurrentSpec) {
+          currentSpecPath.push({
+            path: sku.properties,
+            hold: sku.hold
+          })
         }
-      })
-      if (includeCurrentSpec) {
+      } else {
         currentSpecPath.push({
           path: sku.properties,
           hold: sku.hold
@@ -185,7 +185,7 @@ const SkuSelect: FC<Props> = (props) => {
     })
 
     Object.keys(spec).forEach((sk: string) => {
-      if (sk !== _k && _k) {
+      if ((sk !== _k && _k) || (isCancel && _k)) {
         const isSelected = spec[Object.keys(spec).find((_sk) => sk === _sk) || ''].find((sv) => sv.select)
           ? true
           : false
@@ -344,18 +344,16 @@ const SkuSelect: FC<Props> = (props) => {
           return <div key={`${index + 1}`} className="items">
             <div className="title">{k}</div>
             <div className="tags">
-              {
-                spec[k].map((o, oi) => {
-                  return (
-                    <div
-                      key={`${index + oi}`}
-                      onClick={() => !o.disable && onPressSpecOption(k, o.value, o)}
-                      className={o.select ? "tag active" : o.disable ? "tag disable" : 'tag'}>
-                        {o.value}
-                    </div>
-                  )
-                })
-              }
+              {spec[k].map((o, oi) => {
+                return (
+                  <div
+                    key={`${index + oi}`}
+                    onClick={() => !o.disable && onPressSpecOption(k, o.value, o)}
+                    className={o.select ? "tag active" : o.disable ? "tag disable" : 'tag'}>
+                      {o.value}
+                  </div>
+                )
+              })}
             </div>
           </div>
         })}

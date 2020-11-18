@@ -36,7 +36,7 @@ interface Props {
 let TotalSkuHold = 0 // 总库存
 
 const SkuSelect: FC<Props> = (props) => {
-  const { data, optionsChange, onPressConfirm, onClose = () => {} } = props
+  const { data, optionsChange, onPressConfirm } = props
   const [count, setCount] = useState<number>(1)
   const [spec, setSpec] = useState<Spec>({})
   const [canFlag, setCanFlag] = useState(false)
@@ -107,7 +107,7 @@ const SkuSelect: FC<Props> = (props) => {
     return _cf
   }
 
-  /** 设置 规格是否可以点击，该路径上如果跟该属性的组合没库存则该属性不能点击 */
+  /** 用于规格都没选中的时候 设置 规格是否可以点击，该路径上如果跟该属性的组合没库存则该属性不能点击 */
   const setSpecDisable = (tags: any) => {
     const { skus } = data
     Object.keys(tags).forEach((sk) => {
@@ -118,18 +118,10 @@ const SkuSelect: FC<Props> = (props) => {
         const querySku = skus.find((sku) => {
           // 对比两个数组找到 里面不一样的部分
           const diffSkus = _.differenceWith(sku.properties, currentSpec, _.isEqual)
-          if (diffSkus.length !== sku.properties.length && sku.hold) {
-            return true
-          } else {
-            return false
-          }
+          return (diffSkus.length !== sku.properties.length) && sku.hold
         })
         // 如果找到 对应该属性的路径 sku有不为0 的则可选
-        if (!querySku) {
-          sv.disable = true
-        } else {
-          sv.disable = false
-        }
+        sv.disable = !querySku
       })
     })
     setSpec({ ...tags })
@@ -162,18 +154,18 @@ const SkuSelect: FC<Props> = (props) => {
         return [...prev, `${currentSpecKey}:${spec[currentSpecKey].find((__v) => __v.select)?.value}`]
       }, [])
     if (isCancel) {
-      setSpecDisable(spec)
       if (selectedSpec.length) {
         const k_v = selectedSpec[0].split(':')
         _k = k_v[0]
         _v = k_v[1]
       } else {
+        // 都取消掉的时候重新初始化 哪些不可点
+        setSpecDisable(spec)
         _k = ''
         _v = ''
       }
     }
     const { skus } = data
-    // console.log('当前选中的规格字符串', selectedSpec)
     const currentSpecPath: SpecPath[] = [] // 当前选中的规格所对应的路径也就是所有组合
     
     skus.forEach(sku => {
@@ -191,7 +183,6 @@ const SkuSelect: FC<Props> = (props) => {
         })
       }
     })
-    console.log(currentSpecPath)
 
     Object.keys(spec).forEach((sk: string) => {
       if (sk !== _k && _k) {
@@ -206,21 +197,16 @@ const SkuSelect: FC<Props> = (props) => {
           }
           _ssTemp.push(`${sk}:${sv.value}`)
 
-          const ssLength = _ssTemp.length
           const _tmpPath: SpecPath[] = []
           // 优化
           currentSpecPath.forEach((csp: SpecPath) => {
             const i = _ssTemp.filter((_sst: string) => {
               const querySpec = csp.path.find((p) => {
-                if (`${p.name}:${p.value}` === _sst) {
-                  return true
-                } else {
-                  return false
-                }
+                return `${p.name}:${p.value}` === _sst
               })
               return !!querySpec
             }).length
-            if (i === ssLength) {
+            if (i === _ssTemp.length) {
               _tmpPath.push(csp)
             }
           })

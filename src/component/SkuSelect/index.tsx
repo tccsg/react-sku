@@ -136,12 +136,12 @@ const SkuSelect: FC<Props> = (props) => {
         return [...prev, `${currentSpecKey}:${spec[currentSpecKey].find((__v) => __v.select)?.value}`]
       }, [])
     if (isCancel) {
-      setSpecDisable(spec, skuIdBySkus)
       if (selectedSpec.length) {
         const k_v = selectedSpec[0].split(':')
         _k = k_v[0]
         _v = k_v[1]
       } else {
+        setSpecDisable(spec, skuIdBySkus)
         _k = ''
         _v = ''
       }

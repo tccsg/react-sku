@@ -128,56 +128,54 @@ const SkuSelect: FC<Props> = (props) => {
     })
     setSpec({ ...tags })
   }
-  const skuCore = (selectedSpec) => {
+  /**
+   * 核心代码
+   * @param selectedSpec 已选中的数组
+   */
+  const skuCore = (selectedSpec: string[]) => {
     const { skus } = data
-    const currentSpecPath: SpecPath[] = [] // 当前选中的规格所对应的路径也就是所有组合
-    
-    skus.forEach(sku => {
-      currentSpecPath.push({
-        path: sku.properties,
-        hold: sku.hold
-      })
-    })
 
     Object.keys(spec).forEach((sk: string) => {
+      // 判断该规格中是否有选中的值
       const isSelected = spec[Object.keys(spec).find((_sk) => sk === _sk) || ''].find((sv) => sv.select)
         ? true
         : false
       spec[sk].forEach((sv: SpecItem) => {
-        const _ssTemp = [...selectedSpec]
-        if (isSelected) {
-          const sIndex = _ssTemp.findIndex((_sv) => _sv.includes(sk))
-          _ssTemp.splice(sIndex, 1)
-        }
-        _ssTemp.push(`${sk}:${sv.value}`)
-
-        const _tmpPath: SpecPath[] = []
-        // 优化
-        currentSpecPath.forEach((csp: SpecPath) => {
-          const i = _ssTemp.filter((_sst: string) => {
-            const querySpec = csp.path.find((p) => {
-              return `${p.name}:${p.value}` === _sst
-            })
-            return !!querySpec
-          }).length
-          if (i === _ssTemp.length) {
-            _tmpPath.push(csp)
+        // 判断当前的规格的值是否是选中的，如果是选中的 就不要判断是否可以点击
+        if (!sv.select) {
+          const _ssTemp = [...selectedSpec]
+          if (isSelected) {
+            const sIndex = _ssTemp.findIndex((_sv) => _sv.includes(sk))
+            _ssTemp.splice(sIndex, 1)
           }
-        })
-        const hasHoldPath = _tmpPath.find((p) => p.hold)
-        let isNotEmpty = hasHoldPath ? hasHoldPath.hold : 0
-        sv.disable = !isNotEmpty
+          _ssTemp.push(`${sk}:${sv.value}`)
+          const _tmpPath: SkuItem[] = []
+          skus.forEach((sku: SkuItem) => {
+            // 找出skus里面包含目前所选中的规格的路径的数组的数量
+            const i = _ssTemp.filter((_sst: string) => {
+              const querySpec = sku.properties.find((p) => {
+                return `${p.name}:${p.value}` === _sst
+              })
+              return !!querySpec
+            }).length
+            if (i === _ssTemp.length) {
+              _tmpPath.push(sku)
+            }
+          })
+          const hasHoldPath = _tmpPath.find((p) => p.hold)
+          let isNotEmpty = hasHoldPath ? hasHoldPath.hold : 0
+          sv.disable = !isNotEmpty
+        }
       })
     })
     judgeCanAdd(skus)
   }
   /** 规格选项点击事件 */
-  const onPressSpecOption = (k: string, v: string, currentSpectValue: any) => {
-    let _k = k
+  const onPressSpecOption = (k: string, currentSpectValue: any) => {
     let isCancel = false
     setCount(1)
     // 找到在全部属性spec中对应的属性
-    const currentSpects = spec[Object.keys(spec).find((sk) => sk === _k) || ''] || []
+    const currentSpects = spec[Object.keys(spec).find((sk) => sk === k) || ''] || []
     // 上一个被选中的的属性
     const prevSelectedSpectValue: any = currentSpects.find((cspec) => cspec.select) || {}
     // 设置前一个被选中的值为未选中
@@ -197,14 +195,17 @@ const SkuSelect: FC<Props> = (props) => {
         return [...prev, `${currentSpecKey}:${spec[currentSpecKey].find((__v) => __v.select)?.value}`]
       }, [])
     if (isCancel) {
+      // 如果是取消且全部没选中
       if (!selectedSpec.length) {
+        // 初始化是否可点
         setSpecDisable(spec)
-        _k = ''
       }
     }
-    if (_k) {
+    // 如果规格中有选中的 则对整个规格就行 库存判断 是否可点
+    if (selectedSpec.length) {
       skuCore(selectedSpec)
     }
+
     let price = null
     if (selectedSpec.length) {
       price = getSkuInfoByKey(spec, 'price')
@@ -216,9 +217,7 @@ const SkuSelect: FC<Props> = (props) => {
     if (price) {
       setProdPrice(price)
     }
-    if (hold) {
-      setSkuHold(hold)
-    }
+    setSkuHold(hold)
     optionsChange && optionsChange(spec)
   }
 
@@ -335,7 +334,7 @@ const SkuSelect: FC<Props> = (props) => {
                 return (
                   <div
                     key={`${index + oi}`}
-                    onClick={() => !o.disable && onPressSpecOption(k, o.value, o)}
+                    onClick={() => !o.disable && onPressSpecOption(k, o)}
                     className={o.select ? "tag active" : o.disable ? "tag disable" : 'tag'}>
                       {o.value}
                   </div>

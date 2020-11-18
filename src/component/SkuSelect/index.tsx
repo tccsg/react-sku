@@ -128,11 +128,52 @@ const SkuSelect: FC<Props> = (props) => {
     })
     setSpec({ ...tags })
   }
+  const skuCore = (selectedSpec) => {
+    const { skus } = data
+    const currentSpecPath: SpecPath[] = [] // 当前选中的规格所对应的路径也就是所有组合
+    
+    skus.forEach(sku => {
+      currentSpecPath.push({
+        path: sku.properties,
+        hold: sku.hold
+      })
+    })
 
+    Object.keys(spec).forEach((sk: string) => {
+      const isSelected = spec[Object.keys(spec).find((_sk) => sk === _sk) || ''].find((sv) => sv.select)
+        ? true
+        : false
+      spec[sk].forEach((sv: SpecItem) => {
+        const _ssTemp = [...selectedSpec]
+        if (isSelected) {
+          const sIndex = _ssTemp.findIndex((_sv) => _sv.includes(sk))
+          _ssTemp.splice(sIndex, 1)
+        }
+        _ssTemp.push(`${sk}:${sv.value}`)
+
+        const _tmpPath: SpecPath[] = []
+        // 优化
+        currentSpecPath.forEach((csp: SpecPath) => {
+          const i = _ssTemp.filter((_sst: string) => {
+            const querySpec = csp.path.find((p) => {
+              return `${p.name}:${p.value}` === _sst
+            })
+            return !!querySpec
+          }).length
+          if (i === _ssTemp.length) {
+            _tmpPath.push(csp)
+          }
+        })
+        const hasHoldPath = _tmpPath.find((p) => p.hold)
+        let isNotEmpty = hasHoldPath ? hasHoldPath.hold : 0
+        sv.disable = !isNotEmpty
+      })
+    })
+    judgeCanAdd(skus)
+  }
   /** 规格选项点击事件 */
   const onPressSpecOption = (k: string, v: string, currentSpectValue: any) => {
     let _k = k
-    let _v = v
     let isCancel = false
     setCount(1)
     // 找到在全部属性spec中对应的属性
@@ -159,64 +200,11 @@ const SkuSelect: FC<Props> = (props) => {
       if (!selectedSpec.length) {
         setSpecDisable(spec)
         _k = ''
-        _v = ''
       }
     }
-    const { skus } = data
-    const currentSpecPath: SpecPath[] = [] // 当前选中的规格所对应的路径也就是所有组合
-    
-    skus.forEach(sku => {
-      if (!isCancel) {
-        const includeCurrentSpec = sku.properties.find(property => {
-          return `${property.name}:${property.value}` === `${_k}:${_v}`
-        })
-        if (includeCurrentSpec) {
-          currentSpecPath.push({
-            path: sku.properties,
-            hold: sku.hold
-          })
-        }
-      } else {
-        currentSpecPath.push({
-          path: sku.properties,
-          hold: sku.hold
-        })
-      }
-    })
-
-    Object.keys(spec).forEach((sk: string) => {
-      if ((sk !== _k && _k) || (isCancel && _k)) {
-        const isSelected = spec[Object.keys(spec).find((_sk) => sk === _sk) || ''].find((sv) => sv.select)
-          ? true
-          : false
-        spec[sk].forEach((sv: SpecItem) => {
-          const _ssTemp = [...selectedSpec]
-          if (isSelected) {
-            const sIndex = _ssTemp.findIndex((_sv) => _sv.includes(sk))
-            _ssTemp.splice(sIndex, 1)
-          }
-          _ssTemp.push(`${sk}:${sv.value}`)
-
-          const _tmpPath: SpecPath[] = []
-          // 优化
-          currentSpecPath.forEach((csp: SpecPath) => {
-            const i = _ssTemp.filter((_sst: string) => {
-              const querySpec = csp.path.find((p) => {
-                return `${p.name}:${p.value}` === _sst
-              })
-              return !!querySpec
-            }).length
-            if (i === _ssTemp.length) {
-              _tmpPath.push(csp)
-            }
-          })
-          const hasHoldPath = _tmpPath.find((p) => p.hold)
-          let isNotEmpty = hasHoldPath ? hasHoldPath.hold : 0
-          sv.disable = !isNotEmpty
-        })
-      }
-    })
-
+    if (_k) {
+      skuCore(selectedSpec)
+    }
     let price = null
     if (selectedSpec.length) {
       price = getSkuInfoByKey(spec, 'price')
@@ -231,7 +219,6 @@ const SkuSelect: FC<Props> = (props) => {
     if (hold) {
       setSkuHold(hold)
     }
-    judgeCanAdd(skus)
     optionsChange && optionsChange(spec)
   }
 

@@ -228,7 +228,7 @@ const SkuCreator: FC<Props> = (props) => {
               </Button>
             </Space>
           ))}
-          {totalProperties.length < 3 && (
+          {totalProperties.length < 10 && (
             <Button type="dashed" onClick={property.add}>
               添加规格
             </Button>

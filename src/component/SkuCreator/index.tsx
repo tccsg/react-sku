@@ -7,10 +7,6 @@ import { uuid } from '../../utils'
 
 const { Option } = Select
 
-// key是规格名称，值是个数组每个元素表示从上个元素到当前元素都是合并的，第一个元素的上一个元素是0
-const colSpans = {}
-// 用来做累加的
-const addTemp = {}
 
 export interface SkuItem {
   key?: string
@@ -134,11 +130,7 @@ const SkuCreator: FC<Props> = (props) => {
         _columns.push({
           title: prop.name,
           dataIndex: 'properties',
-          key: 'properties',
-          render: (value, row, index) => {
-            const item = value.find((v: any) => v.name === prop.name)
-            return item?.value
-          }
+          key: 'properties'
         })
 
         prop.values.forEach((value) => {
@@ -160,7 +152,44 @@ const SkuCreator: FC<Props> = (props) => {
         properties: Array.isArray(e) ? e : [e]
       })
     })
-    console.log(_rows)
+    ////////
+    const colSpanArray: any = {}
+    const rowCount: any = []
+    _rows.forEach((r, rindex) => {
+      r.properties?.forEach((p, pindex) => {
+        if (!colSpanArray[p.name]) {
+          colSpanArray[p.name] = []
+        }
+        if (rowCount[pindex] !== p.value) {
+          colSpanArray[p.name].push(rindex - 1)
+          rowCount[pindex] = p.value
+          if (rindex + 1 === _rows.length) {
+            colSpanArray[p.name].push(rindex)
+          }
+        } else {
+          if (rindex + 1 === _rows.length) {
+            colSpanArray[p.name].push(rindex)
+          }
+        }
+      })
+    })
+    _columns.forEach(c => {
+      c.render = (value, _, index) => {
+        const item = value.find((v: any) => v.name === c.title)
+        const obj: any = {
+          children: item?.value,
+          props: {},
+        }
+        obj.props.rowSpan = 0
+        colSpanArray[c.title as string]?.forEach((i, cindex) => {
+          const prev = colSpanArray[c.title as string][cindex - 1]
+          if (index === (prev === undefined ? 0 : prev + 1)) {
+            obj.props.rowSpan = prev === undefined ? i + 1 : i - prev
+          }
+        })
+        return obj
+      }
+    })
     // 添加额外的栏
     _columns.push({
       title: '价格',

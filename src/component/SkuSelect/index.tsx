@@ -128,7 +128,7 @@ const SkuSelect: FC<Props> = (props) => {
   const skuCore = (selectedSpec: string[]) => {
     const { skus } = data
     Object.keys(spec).forEach((sk: string) => {
-      // 判断该规格中是否有选中的值
+      // 找出该规格中选中的值
       const currentSpecSelectedValue = spec[Object.keys(spec).find((_sk) => sk === _sk) || ''].find((sv) => sv.select)
       spec[sk].forEach((sv: SpecItem) => {
         // 判断当前的规格的值是否是选中的，如果是选中的 就不要判断是否可以点击

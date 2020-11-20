@@ -124,41 +124,44 @@ const SkuSelect: FC<Props> = (props) => {
   /**
    * 核心代码
    * @param selectedSpec 已选中的数组
+   * @param currentSpecName 当前点击的规格的名称
    */
-  const skuCore = (selectedSpec: string[]) => {
+  const skuCore = (selectedSpec: string[], currentSpecName?: string) => {
     const { skus } = data
     Object.keys(spec).forEach((sk: string) => {
       // 找出该规格中选中的值
-      const currentSpecSelectedValue = spec[Object.keys(spec).find((_sk) => sk === _sk) || ''].find((sv) => sv.select)
-      spec[sk].forEach((sv: SpecItem) => {
-        // 判断当前的规格的值是否是选中的，如果是选中的 就不要判断是否可以点击
-        if (!sv.select) {
-          const _ssTemp = [...selectedSpec]
-          // 如果当前规格有选中的值
-          if (!!currentSpecSelectedValue) {
-            const sIndex = _ssTemp.findIndex((_sv) => _sv === `${sk}:${currentSpecSelectedValue.value}`)
-            _ssTemp.splice(sIndex, 1)
-          }
-          _ssTemp.push(`${sk}:${sv.value}`)
-          const _tmpPath: SkuItem[] = []
-          skus.forEach((sku: SkuItem) => {
-            // 找出skus里面包含目前所选中的规格的路径的数组的数量
-            const querSkus = _ssTemp.filter((_sst: string) => {
-              const querySpec = sku.properties.find((p) => {
-                return `${p.name}:${p.value}` === _sst
-              })
-              return !!querySpec
-            })
-            const i = querSkus.length
-            if (i === _ssTemp.length) {
-              _tmpPath.push(sku) // 把包含该路径的sku全部放到一个数组里
+      if (sk !== currentSpecName) {
+        const currentSpecSelectedValue = spec[Object.keys(spec).find((_sk) => sk === _sk) || ''].find((sv) => sv.select)
+        spec[sk].forEach((sv: SpecItem) => {
+          // 判断当前的规格的值是否是选中的，如果是选中的 就不要判断是否可以点击
+          if (!sv.select) {
+            const _ssTemp = [...selectedSpec]
+            // 如果当前规格有选中的值
+            if (!!currentSpecSelectedValue) {
+              const sIndex = _ssTemp.findIndex((_sv) => _sv === `${sk}:${currentSpecSelectedValue.value}`)
+              _ssTemp.splice(sIndex, 1)
             }
-          })
-          const hasHoldPath = _tmpPath.find((p) => p.hold) // 判断里面是要有个sku不为0 则可点击
-          let isNotEmpty = hasHoldPath ? hasHoldPath.hold : 0
-          sv.disable = !isNotEmpty
-        }
-      })
+            _ssTemp.push(`${sk}:${sv.value}`)
+            const _tmpPath: SkuItem[] = []
+            skus.forEach((sku: SkuItem) => {
+              // 找出skus里面包含目前所选中的规格的路径的数组的数量
+              const querSkus = _ssTemp.filter((_sst: string) => {
+                const querySpec = sku.properties.find((p) => {
+                  return `${p.name}:${p.value}` === _sst
+                })
+                return !!querySpec
+              })
+              const i = querSkus.length
+              if (i === _ssTemp.length) {
+                _tmpPath.push(sku) // 把包含该路径的sku全部放到一个数组里
+              }
+            })
+            const hasHoldPath = _tmpPath.find((p) => p.hold) // 判断里面是要有个sku不为0 则可点击
+            let isNotEmpty = hasHoldPath ? hasHoldPath.hold : 0
+            sv.disable = !isNotEmpty
+          }
+        })
+      }
     })
     judgeCanAdd(skus)
   }
@@ -195,7 +198,7 @@ const SkuSelect: FC<Props> = (props) => {
     }
     // 如果规格中有选中的 则对整个规格就行 库存判断 是否可点
     if (selectedSpec.length) {
-      skuCore(selectedSpec)
+      skuCore(selectedSpec, k)
     }
 
     let price = null

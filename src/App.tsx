@@ -21,16 +21,16 @@ const App = () => {
         <SkuCreator onChange={(skus) => {
           tempSKus = skus
         }} skus={[]} />
-        <Button onClick={confirmSkus}>添加</Button>
+        <Button type="primary" onClick={confirmSkus}>确认添加</Button>
       </div>
       <div style={{ background: '#f7f7f7' }}>
         <div className="sku-select-wrap">
           <SkuSelect
             optionsChange={(spec) => {
-              // console.log('点击的规格属性变化', spec)
+              console.log('点击的规格属性变化', spec)
             }}
             onPressConfirm={(data) => {
-              // console.info('提交的数据', data)
+              console.info('提交的数据', data)
             }}
             data={{skus, ...mockItemData}} />
         </div>

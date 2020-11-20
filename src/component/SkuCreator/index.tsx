@@ -246,39 +246,7 @@ const SkuCreator: FC<Props> = (props) => {
             // footer={() => 'Footer'}
           />
         </Form.Item>
-      ) : (
-        <>
-          <Form.Item
-            label="价格"
-            name="price"
-            wrapperCol={{ span: 2 }}
-            initialValue={defaultPrice}
-            rules={[
-              {
-                required: true,
-                message: '价格不能为空'
-              }
-            ]}
-          >
-            <Input prefix="￥" />
-          </Form.Item>
-
-          <Form.Item
-            label="库存"
-            name="hold"
-            initialValue={defaultHold}
-            wrapperCol={{ span: 2 }}
-            rules={[
-              {
-                required: !isShowDetail,
-                message: '库存不能为空'
-              }
-            ]}
-          >
-            <Input />
-          </Form.Item>
-        </>
-      )}
+      ) : null}
     </>
   )
 }

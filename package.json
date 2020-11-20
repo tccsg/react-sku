@@ -2,6 +2,7 @@
   "name": "react-sku",
   "version": "0.1.0",
   "private": true,
+  "homepage": "./",
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
@@ -11,6 +12,7 @@
     "@types/react": "^16.9.56",
     "@types/react-dom": "^16.9.9",
     "antd": "^4.8.4",
+    "gh-pages": "^3.1.0",
     "lodash": "^4.17.20",
     "node-sass": "4.14.1",
     "react": "^17.0.1",
@@ -23,7 +25,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [

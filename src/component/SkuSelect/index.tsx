@@ -84,7 +84,7 @@ const SkuSelect: FC<Props> = (props) => {
   /** 判断是否可以添加进购物车，比如属性是否有选，库存情况等 */
   const judgeCanAdd = (skus: any[] | undefined) => {
     const sks = Object.keys(spec)
-    let s = sks.filter((sk) => spec[sk].find((sv) => sv.select)).length // 已经选择的规格个数
+    let s = sks.filter((sk) => spec[sk].some((sv) => sv.select)).length // 已经选择的规格个数
     let _cf = s === sks.length
     if (!skus || !skus.length) {
       _cf = false

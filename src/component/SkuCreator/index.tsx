@@ -7,6 +7,11 @@ import { uuid } from '../../utils'
 
 const { Option } = Select
 
+// key是规格名称，值是个数组每个元素表示从上个元素到当前元素都是合并的，第一个元素的上一个元素是0
+const colSpans = {}
+// 用来做累加的
+const addTemp = {}
+
 export interface SkuItem {
   key?: string
   skuId?: string
@@ -155,7 +160,7 @@ const SkuCreator: FC<Props> = (props) => {
         properties: Array.isArray(e) ? e : [e]
       })
     })
-
+    console.log(_rows)
     // 添加额外的栏
     _columns.push({
       title: '价格',
@@ -188,6 +193,7 @@ const SkuCreator: FC<Props> = (props) => {
 
     setIsShowDetail(_isShowDetail)
     setColumns(_columns)
+    // console.log(_columns)
     // 当totalProperties 发生改变时候就要重置行元素
     if (!_.isEqual(totalProperties, defaultProperties)) {
       setRows(_rows)
@@ -196,6 +202,7 @@ const SkuCreator: FC<Props> = (props) => {
 
   useEffect(() => {
     onChange?.(rows)
+    // console.log(rows)
   }, [rows])
 
   return (

@@ -129,11 +129,11 @@ const SkuSelect: FC<Props> = (props) => {
   const skuCore = (selectedSpec: string[], currentSpecName?: string) => {
     const { skus } = data
     Object.keys(spec).forEach((sk: string) => {
-      // 找出该规格中选中的值
       if (sk !== currentSpecName) {
+        // 找出该规格中选中的值
         const currentSpecSelectedValue = spec[Object.keys(spec).find((_sk) => sk === _sk) || ''].find((sv) => sv.select)
         spec[sk].forEach((sv: SpecItem) => {
-          // 判断当前的规格的值是否是选中的，如果是选中的 就不要判断是否可以点击
+          // 判断当前的规格的值是否是选中的，如果是选中的 就不要判断是否可以点击直接跳过循环
           if (!sv.select) {
             const _ssTemp = [...selectedSpec]
             // 如果当前规格有选中的值
@@ -143,13 +143,14 @@ const SkuSelect: FC<Props> = (props) => {
             }
             _ssTemp.push(`${sk}:${sv.value}`)
             const _tmpPath: SkuItem[] = []
+            // 找到包含该路径的全部sku
             skus.forEach((sku: SkuItem) => {
               // 找出skus里面包含目前所选中的规格的路径的数组的数量
               const querSkus = _ssTemp.filter((_sst: string) => {
-                const querySpec = sku.properties.find((p) => {
+                const querySpec = sku.properties.some((p) => {
                   return `${p.name}:${p.value}` === _sst
                 })
-                return !!querySpec
+                return querySpec
               })
               const i = querSkus.length
               if (i === _ssTemp.length) {
@@ -216,6 +217,9 @@ const SkuSelect: FC<Props> = (props) => {
     optionsChange && optionsChange(spec)
   }
 
+  /**
+   * 通过skus初始化 各个规格
+   */
   const setDrawOptions = () => {
     const skus = data?.skus
     const _spec = data?.spec
@@ -228,7 +232,7 @@ const SkuSelect: FC<Props> = (props) => {
       setSkuHold(dataExtraHold as number)
     } else {
       const _tempTagsStrArray: any = {} // 临时字符串数组
-      let _skuHold = 0
+      let _skuHold = 0 // 用于计算总库存
       skus?.forEach((s) => {
         _skuHold += s.hold
         s?.properties?.forEach((p) => {

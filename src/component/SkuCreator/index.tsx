@@ -222,16 +222,20 @@ const SkuCreator: FC<Props> = (props) => {
 
     setIsShowDetail(_isShowDetail)
     setColumns(_columns)
-    // console.log(_columns)
     // 当totalProperties 发生改变时候就要重置行元素
     if (!_.isEqual(totalProperties, defaultProperties)) {
       setRows(_rows)
     }
   }, [totalProperties])
 
+  const onPressTop = (index: number) => {
+    const topProperty = totalProperties[index]
+    _.pullAt(totalProperties, index)
+    totalProperties.unshift(topProperty)
+    setTotalProperties([...totalProperties])
+  }
   useEffect(() => {
     onChange?.(rows)
-    // console.log(rows)
   }, [rows])
 
   return (
@@ -262,6 +266,11 @@ const SkuCreator: FC<Props> = (props) => {
               <Button type="link" danger onClick={() => property.remove(i)}>
                 删除
               </Button>
+              {/* {i !== 0 ? (
+                <Button type="link" onClick={() => onPressTop(i)}>
+                  置顶
+                </Button>
+              ) : null} */}
             </Space>
           ))}
           {totalProperties.length < 10 && (

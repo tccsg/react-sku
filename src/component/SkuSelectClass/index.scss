@@ -1,0 +1,121 @@
+.drawer-inner {
+  padding: 0 25px;
+  .prod-info {
+    display: flex;
+    .prod-img {
+      width: 100px;
+      height: 100px;
+      font-size: 0;
+      overflow: hidden;
+      background: #ccc;
+      border-radius: 8px;
+      img {
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
+        object-fit: fill;
+      }
+    }
+    .content {
+      padding-left: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      .item-title {
+        font-size: 16px;
+        color: #333333;
+      }
+      .price-wrap {
+        display: flex;
+        align-items: center;
+        font-size: 16px;
+        color: #fe4346;
+        line-height: 16px;
+      }
+      .sku-hold {
+        font-size: 12px;
+        color: #878787;
+        margin-top: 3px;
+      }
+    }
+  }
+  .items {
+    margin-top: 15px;
+    .title {
+      font-size: 14px;
+      color: #333333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      .count-wrap {
+        display: flex;
+        align-items: center;
+        .sign {
+          width: 22px;
+          height: 22px;
+          text-align: center;
+          line-height: 20px;
+          font-size: 12px;
+          color: #333333;
+          cursor: pointer;
+          border-radius: 4px;
+          background-color: #f7f7f7;
+        }
+        .count-box {
+          margin: 0 2px;
+          background-color: #f7f7f7;
+          height: 22px;
+          font-size: 12px;
+          line-height: 22px !important;
+          width: 36px;
+          color: #333333;
+          box-sizing: border-box;
+          text-align: center;
+          min-height: 22px;
+        }
+      }
+    }
+    .tags {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      .tag {
+        height: 30px;
+        border-radius: 30px;
+        padding: 0px 18px;
+        border: 1px solid #f7f7f7;
+        color: #333333;
+        background-color: #f7f7f7;
+        font-size: 12px;
+        line-height: 30px;
+        margin-right: 9px;
+        margin-bottom: 9px;
+        cursor: pointer;
+        &.active {
+          border-color: #fe4346;
+          color: #fe4346;
+          background-color: #fde1df;
+        }
+        &.disable {
+          color: #ccc;
+        }
+      }
+    }
+  }
+}
+.btn-wrap {
+  margin-top: 30px;
+  .btn {
+    height: 40px;
+    line-height: 40px;
+    border-radius: 40px;
+    text-align: center;
+    font-size: 14px;
+    cursor: pointer;
+    color: #ffffff;
+    background-color: #f89920;
+    &.disable {
+      background-color: #ccc !important;
+    }
+  }
+}

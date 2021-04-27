@@ -26,6 +26,7 @@
     "camelcase": "^6.1.0",
     "case-sensitive-paths-webpack-plugin": "2.3.0",
     "css-loader": "4.3.0",
+    "dg-mp": "^1.0.3",
     "dotenv": "8.2.0",
     "dotenv-expand": "5.1.0",
     "eslint": "^7.11.0",
@@ -81,7 +82,8 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "mp": "dg-mp"
   },
   "eslintConfig": {
     "extends": [

@@ -1,4 +1,3 @@
-[这里安利一个买莆田鞋的网站: putian.io](https://putian.io)
 
 演示地址：https://tccsg.github.io/react-sku/
 
